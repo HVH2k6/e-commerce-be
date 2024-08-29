@@ -11,19 +11,29 @@ const getAll = async (req, res) => {
 };
 const create = async (req, res) => {
   try {
-    const { name, price, sale, description, image } = req.body;
-    const sql =
-      'INSERT INTO `product`(`name`, `price`, `sale`,`description`,`image`) VALUES (?, ?, ?, ?, ?)';
+    const { name, price, sale, description, category, image } = req.body;
+    
+    // Lấy tên của category từ bảng category
+    const getNameCategorySql = 'SELECT name_category FROM category WHERE id = ?';
+    const [categoryResult] = await connection.promise().query(getNameCategorySql, [category]);
 
-    const [result, fields] = await connection
-      .promise()
-      .query(sql, [name, price, sale, description, image]);
+    if (categoryResult.length === 0) {
+      return res.status(404).send({ error: 'Category not found' });
+    }
+
+    const categoryName = categoryResult[0].name_category;
+
+    const sql =
+      'INSERT INTO `product`(`name`, `price`, `sale`, `description`, `category`, `image`) VALUES (?, ?, ?, ?, ?, ?)';
+
+    await connection.promise().query(sql, [name, price, sale, description, categoryName, image]);
 
     res.status(201).send({ message: 'Product created successfully' });
   } catch (err) {
     res.status(500).send({ error: 'Something went wrong' });
   }
 };
+
 const deleteProduct = async (req, res) => {
   const { id } = req.params;
 

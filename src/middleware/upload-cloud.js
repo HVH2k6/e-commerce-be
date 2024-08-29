@@ -43,6 +43,7 @@ const cloud = (req, res, next) => {
 };
 const deleteImage = async (req, res) => {
   const { url } = req.body;
+  console.log("deleteImage ~ url:", url)
   const regex = /(?<=\/)[\w]+(?=\.\w+$)/;
   const imageName = url.match(regex)[0];
   if (imageName) {
