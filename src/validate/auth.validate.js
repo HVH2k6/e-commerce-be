@@ -25,4 +25,14 @@ const validateRegister = async (req, res, next) => {
 
   next();
 };
-module.exports = { validateRegister };
+const validateLogin = async (req, res, next) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).send({
+      message: 'Vui lòng điền đầy đủ thông tin',
+    });
+  }
+
+  next();
+}
+module.exports = { validateRegister ,validateLogin};
