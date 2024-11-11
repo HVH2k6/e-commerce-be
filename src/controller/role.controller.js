@@ -1,4 +1,5 @@
 const connection = require('../config/connect_db');
+
 const getAll = async (req, res) => {
   try {
     const sql = 'SELECT * FROM `role`';
@@ -55,13 +56,13 @@ const getPermissions = async (roleId) => {
       try {
         return JSON.parse(rows[0].permission) || []; // Parse JSON và đảm bảo trả về mảng rỗng nếu không có dữ liệu
       } catch (parseError) {
-        console.error("Error parsing permission JSON:", parseError);
+        console.error('Error parsing permission JSON:', parseError);
         return []; // Trả về mảng rỗng nếu có lỗi khi parse
       }
     }
     return []; // Trả về mảng rỗng nếu không tìm thấy role
   } catch (error) {
-    console.error("Error fetching permissions:", error);
+    console.error('Error fetching permissions:', error);
     return []; // Trả về mảng rỗng trong trường hợp lỗi
   }
 };
@@ -76,12 +77,16 @@ const updatePermission = async (req, res) => {
 
     // Đảm bảo currentPermissions là mảng
     if (!Array.isArray(currentPermissions)) {
-      return res.status(500).send({ message: 'Current permissions data is invalid' });
+      return res
+        .status(500)
+        .send({ message: 'Current permissions data is invalid' });
     }
 
     // Cập nhật lại field permission trong cơ sở dữ liệu
     const sql = 'UPDATE `role` SET `permission` = ? WHERE `id` = ?';
-    const [result] = await connection.promise().query(sql, [JSON.stringify(permission), id]);
+    const [result] = await connection
+      .promise()
+      .query(sql, [JSON.stringify(permission), id]);
 
     if (result.affectedRows === 0) {
       return res.status(404).send({ message: 'Role not found' });
@@ -94,6 +99,38 @@ const updatePermission = async (req, res) => {
   }
 };
 
+const checkRole = async (req, res) => {
+  const { role_id } = req.user;
+  console.log('checkRole ~ role_id:', role_id);
+
+  try {
+    const [rows] = await connection
+      .promise()
+      .query(`SELECT * FROM role WHERE id = ?`, [role_id]);
+    if (rows.length === 0) {
+      return res.status(404).send({ message: 'Role not found' });
+    }
+    res.status(200).send(rows[0]);
+  } catch (error) {
+    res.status(500).send({ message: 'Database error', error });
+  }
+};
+const checkPermission = async (req, res) => {
+  const { role_id } = req.user;
+
+  try {
+    const [rows] = await connection
+      .promise()
+      .query(`SELECT * FROM role WHERE id = ?`, [role_id]);
+    if (rows.length === 0) {
+      return res.status(404).send({ message: 'Role not found' });
+    }
+    const permissions = JSON.parse(rows[0].permission);
+    res.status(200).send(permissions);
+  } catch (error) {
+    res.status(500).send({ message: 'Database error', error });
+  }
+};
 
 module.exports = {
   getAll,
@@ -101,4 +138,6 @@ module.exports = {
   getRoleById,
   getDataUpdate,
   updatePermission,
+  checkRole,
+  checkPermission,
 };

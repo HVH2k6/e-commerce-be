@@ -4,14 +4,20 @@ const bcrypt = require('bcryptjs');
 const jwtToken = require('../middleware/token.middleware');
 const { base64url } = require('../helper/base64str');
 const crypto = require('crypto');
+
 const register = async (req, res) => {
   const { fullname, email, password } = req.body;
   try {
     const hashPassword = await bcrypt.hash(password, 10);
-
+    // find name_role from role table and insert into auth table
+    const sqlNameRole = 'SELECT name_role FROM role WHERE id = 3';
+    const [result] = await connection.promise().query(sqlNameRole);
+    const name_role = result[0].name_role;
     const sql =
-      'INSERT INTO `auth`(`fullname`, `email`, `password`) VALUES (?, ?, ?)';
-    await connection.promise().query(sql, [fullname, email, hashPassword]);
+      'INSERT INTO `auth`(`fullname`, `email`, `password`, `role_id`, `name_role`) VALUES (?, ?, ?, ?, ?)';
+    await connection
+      .promise()
+      .query(sql, [fullname, email, hashPassword, 3, name_role]);
 
     res.status(201).send({ message: 'User created successfully' });
   } catch (error) {
@@ -37,9 +43,10 @@ const login = async (req, res) => {
     const userData = {
       id: user.id,
       email: user.email,
-      fullname: user.fullname ||"",
+      fullname: user.fullname || '',
       avatar: user.avatar,
-      role: user.role||"user",
+      role_id: user.role_id,
+      name_role: user.name_role,
     };
     const headerToken = {
       alg: 'HS256',
@@ -66,7 +73,40 @@ const login = async (req, res) => {
   }
 };
 const getUser = async (req, res) => {
-    res.json(req.user);
-}
+  res.json(req.user);
+};
+const getAllUser = async (req, res) => {
+  const sql = 'SELECT * FROM `auth`';
+  const [rows, fields] = await connection.promise().query(sql);
+  res.json(rows);
+};
+const getUserUpdate = async (req, res) => {
+  const { id } = req.params;
+  const sql = 'SELECT * FROM `auth` WHERE id = ?';
+  const [rows, fields] = await connection.promise().query(sql, [id]);
+  if (rows.length === 0) {
+    return res.status(404).send({ message: 'User not found' });
+  }
+  res.json(rows[0]);
+};
+const updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { role_id, active } = req.body;
+  const queryNameRole = `SELECT name_role FROM role WHERE id = ${role_id}`;
+  const dataRole = await connection.promise().query(queryNameRole);
+  const name_role = dataRole[0][0].name_role;
 
-module.exports = { register, login, getUser };
+  const sql =
+    'UPDATE `auth` SET role_id = ?, active = ?, name_role = ? WHERE id = ?';
+  await connection.promise().query(sql, [role_id, active, name_role, id]);
+  res.json({ message: 'User updated successfully' });
+};
+
+module.exports = {
+  register,
+  login,
+  getUser,
+  getAllUser,
+  getUserUpdate,
+  updateUser,
+};

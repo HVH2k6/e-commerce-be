@@ -4,7 +4,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --inspect src/index.js"
+    "start": "nodemon --inspect src/index.js",
+    "createRole":"node src/createRole.js"
   },
   "author": "",
   "license": "ISC",

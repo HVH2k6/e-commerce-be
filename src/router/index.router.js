@@ -20,4 +20,5 @@ module.exports = (app) => {
   app.use('/api/role', roleRouter);
   app.use('/api/permission', permissionRouter);
   app.use('/api/sale', saleRouter);
+  
 };

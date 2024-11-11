@@ -16,7 +16,7 @@ const validateRegister = async (req, res, next) => {
 
   const [result] = await connection.promise().query(exitEmail);
   const data = result[0];
-  const emailCheck = data.email;
+  const emailCheck = data?.email;
   if (emailCheck===email) {
     return res.status(400).send({
       message: 'Email đã tồn tại',

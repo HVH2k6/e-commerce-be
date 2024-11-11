@@ -22,6 +22,7 @@ const refreshToken = (payload) => {
 const checkTokenClient = (req, res, next) => {
   if (req.headers.authorization) {
     const token = req.headers.authorization.split(' ')[1];
+    console.log("checkTokenClient ~ token:", token)
     const [encodedHeader, encodedPayload, tokenSignature] = token.split('.');
     const tokenData = `${encodedHeader}.${encodedPayload}`;
     const hmac = crypto.createHmac('sha256', process.env.JWT_SECRET);
