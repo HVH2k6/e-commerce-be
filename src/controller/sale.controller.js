@@ -22,8 +22,8 @@ const getAll = async (req, res) => {
         return {
           id: sale.id,
           titleSale: sale.title,
-          timeStart: sale.time_start,
-          timeEnd: sale.time_end,
+          timeStart: new Date(sale.time_start),
+          timeEnd: new Date(sale.time_end),
           listProductSale,
         };
       })
@@ -45,7 +45,7 @@ const create = async (req, res) => {
     'INSERT INTO `sale`(`title`,`time_start`,`time_end`,`list_product`) VALUES (?, ?, ?, ?)';
   await connection
     .promise()
-    .query(sql, [title, time_start, time_end, JSON.stringify(list_product)]);
+    .query(sql, [title, new Date(time_start), new Date(time_end), JSON.stringify(list_product)]);
   res
     .status(200)
     .json({ status: 'success', message: 'Sale created successfully' });
@@ -92,12 +92,20 @@ const getDataUpdate = async (req, res) => {
 const update = async (req, res) => {
   const { id } = req.params;
   const { title, time_start, time_end, list_product } = req.body;
+  
+
   const sql =
     'UPDATE `sale` SET `title` = ?, `time_start` = ?, `time_end` = ?, `list_product` = ? WHERE `id` = ?';
   const [result, fields] = await connection
     .promise()
-    .query(sql, [title, time_start, time_end, JSON.stringify(list_product), id]);
+    .query(sql, [title, new Date(time_start), new Date(time_end), JSON.stringify(list_product), id]);
   res.send({ message: 'Sale updated successfully' });
 };
+const deletesSale = async (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM `sale` WHERE id = ?';
+  await connection.promise().query(sql, [id]);
+  res.json({ message: 'Sale deleted successfully' });
+};
 
-module.exports = { getAll, create, getDataUpdate ,update};
+module.exports = { getAll, create, getDataUpdate ,update ,deletesSale};

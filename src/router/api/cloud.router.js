@@ -10,5 +10,7 @@ router.post(
 
   controller.cloud
 );
+router.post('/drive/upload',fileUpload.single('fileEditor'), controller.drive);
 router.delete('/cloudinary/delete', controller.deleteImage);
+router.post('/cloudinary/upload-multiple', fileUpload.array('files', 10), controller.cloudMultiple);
 module.exports = router;

@@ -101,7 +101,7 @@ const updatePermission = async (req, res) => {
 
 const checkRole = async (req, res) => {
   const { role_id } = req.user;
-  console.log('checkRole ~ role_id:', role_id);
+  // console.log('checkRole ~ role_id:', role_id);
 
   try {
     const [rows] = await connection

@@ -18,12 +18,20 @@ const getAll = async (req, res) => {
 const create = async (req, res) => {
   try {
     const { name, method, apiPath, module } = req.body;
+
+    // Ensure required fields are provided
+    if (!name || !method || !apiPath || !module) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
     const sql =
       'INSERT INTO `permissions`(`name`, `method`, `apiPath`, `module`) VALUES (?, ?, ?, ?)';
     await connection.promise().query(sql, [name, method, apiPath, module]);
-    res.status(201).send('Permission created successfully');
+
+    res.status(201).json({ message: 'Permission created successfully' });
   } catch (error) {
-    console.log(error);
+    console.error("Error in create:", error);
+    res.status(500).json({ error: 'Failed to create permission' });
   }
 };
 module.exports = { getAll, create };

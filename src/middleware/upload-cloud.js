@@ -41,9 +41,47 @@ const cloud = (req, res, next) => {
     next();
   }
 };
+// upload muiple image
+const cloudMultiple = (req, res, next) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).send('No files uploaded');
+  }
+
+  const uploadFile = (file) => {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream((error, result) => {
+        if (result) {
+          resolve(result.secure_url); // Only return the secure URL
+        } else {
+          reject(error);
+        }
+      });
+      streamifier.createReadStream(file.buffer).pipe(stream);
+    });
+  };
+
+  async function uploadMultiple(req) {
+    try {
+      // Map over all files, calling `uploadFile` for each one
+      const uploadPromises = req.files.map((file) => uploadFile(file));
+      const uploadResults = await Promise.all(uploadPromises);
+
+      res.send({
+        message: 'Files uploaded successfully',
+        urls: uploadResults, // Array of URLs for all uploaded images
+      });
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      res.status(500).send('Error uploading files');
+    }
+  }
+
+  uploadMultiple(req);
+};
+
 const deleteImage = async (req, res) => {
   const { url } = req.body;
-  console.log("deleteImage ~ url:", url)
+  console.log('deleteImage ~ url:', url);
   const regex = /(?<=\/)[\w]+(?=\.\w+$)/;
   const imageName = url.match(regex)[0];
   if (imageName) {
@@ -88,4 +126,4 @@ const drive = async (req, res, next) => {
     res.status(400).send('No file uploaded');
   }
 };
-module.exports = { cloud, drive, deleteImage };
+module.exports = { cloud, drive, deleteImage ,cloudMultiple};

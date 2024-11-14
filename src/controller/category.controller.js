@@ -118,6 +118,16 @@ const deleteCategory = async (req, res) => {
   const [result, field] = await connection.promise().query(sql, [id]);
   res.send({ message: 'category deleted successfully' });
 };
+const gettParrentCategory = async (req, res) => {
+  // get all categories where parent_id = ""
+  const sql = 'SELECT * FROM category WHERE parent_id = ""';
+  try {
+    const [rows] = await connection.promise().query(sql);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).send({ error: 'Something went wrong' });
+  }
+};
 
 module.exports = {
   getAllCategories,
@@ -125,4 +135,5 @@ module.exports = {
   GetDataUpdate,
   updateCategory,
   deleteCategory,
+  gettParrentCategory,
 };
